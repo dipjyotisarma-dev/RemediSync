@@ -1,0 +1,39 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Data files (raw & processed stay local, not on git)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Trained ML model binaries
+models/*.joblib
+models/*.pkl
+
+# Frontend dependencies & production builds
+frontend/node_modules/
+frontend/dist/
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+
+# Environment variables & secrets
+.env
+*.env
+
+# AI Assistant Memory / Scratch Reference (Non-project reference files)
+.agent_brain/
+*brain.md
