@@ -234,3 +234,64 @@ class DemandProfiler:
         target.parent.mkdir(parents=True, exist_ok=True)
         self.profiles_df.to_csv(target, index=False)
         return target
+
+
+def main() -> None:
+    import sys
+    if sys.platform == "win32":
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except AttributeError:
+            pass
+
+    profiler = DemandProfiler()
+    profiler.load_data()
+    profiles_df = profiler.generate_full_profiles()
+    seasonality = profiler.compute_temporal_seasonality()
+
+    print("=" * 70)
+    print("REMEDISYNC DEMAND PROFILING & TIME-SERIES CHARACTERIZATION")
+    print("=" * 70)
+    print(f"Total Series Analyzed: {len(profiles_df)} (129 SKUs x 4 Branches)")
+    print("-" * 70)
+
+    print("\n[+] SYNTETOS-BOYLAN (CROSTON) DEMAND QUADRANTS:")
+    pattern_counts = profiles_df["demand_pattern"].value_counts()
+    for pattern, count in pattern_counts.items():
+        pct = (count / len(profiles_df)) * 100
+        print(f"  * {pattern:<16}: {count:>3} series ({pct:>5.1f}%)")
+
+    print("\n[+] ABC PARETO REVENUE DISTRIBUTION:")
+    abc_summary = profiles_df.groupby("abc_class").agg(
+        sku_count=("medicine_id", "nunique"),
+        total_revenue=("total_revenue", "sum")
+    ).reset_index()
+    total_rev = abc_summary["total_revenue"].sum()
+    abc_summary["rev_share"] = (abc_summary["total_revenue"] / total_rev) * 100
+
+    print(f"{'Tier':<8} {'Unique SKUs':<14} {'Total Revenue (INR)':<22} {'Revenue Share':<14}")
+    print("-" * 60)
+    for _, row in abc_summary.iterrows():
+        print(f"Class {row['abc_class']:<2} {row['sku_count']:<14} INR {row['total_revenue']:>15,.2f} {row['rev_share']:>11.1f}%")
+
+    print("\n[+] DAY-OF-WEEK DEMAND VELOCITY (AGGREGATE INDEX):")
+    dow_df = seasonality["day_of_week_index"]
+    agg_dow = dow_df.groupby(["day_of_week_num", "day_of_week"])["dow_index"].mean().reset_index()
+    for _, row in agg_dow.iterrows():
+        bar = "#" * int(round(row["dow_index"] * 20))
+        print(f"  {row['day_of_week']:<10} (Index: {row['dow_index']:.2f}) | {bar}")
+
+    print("\n[+] PAYDAY SURGE PROFILE (DAYS 1-7 VS MONTH REST):")
+    payday_df = seasonality["payday_surge"].sort_values(by="payday_surge_ratio", ascending=False)
+    for _, row in payday_df.head(6).iterrows():
+        pct = (row["payday_surge_ratio"] - 1.0) * 100
+        print(f"  * {row['category']:<20}: +{pct:.1f}% surge (Ratio: {row['payday_surge_ratio']:.2f})")
+
+    out_path = profiler.export_profiles()
+    print("\n" + "=" * 70)
+    print(f"Profiles Exported: {out_path}")
+    print("=" * 70)
+
+
+if __name__ == "__main__":
+    main()

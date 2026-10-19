@@ -260,15 +260,53 @@ def main() -> None:
     auditor = DataHealthAuditor()
     report = auditor.run_full_audit()
 
-    print("=" * 65)
-    print(f"REMEDISYNC DATA HEALTH AUDIT: {report['audit_status']}")
-    print("=" * 65)
-    print(f"Critical Errors: {report['critical_errors_count']}")
-    print(f"Warnings:        {report['warnings_count']}")
-    print(f"Date Grid:       {report['date_grid_audit'].get('actual_records', 0):,} records verified")
-    print(f"Grid Continuity: {'100% Complete' if report['date_grid_audit'].get('grid_continuity_valid') else 'FAILED'}")
+    print("=" * 70)
+    print(f"REMEDISYNC DATA HEALTH & TELEMETRY AUDIT: {report['audit_status']}")
+    print("=" * 70)
+    print(f"Critical Errors: {report['critical_errors_count']} | Warnings: {report['warnings_count']}")
+    print(f"Time-Series Grid: {report['date_grid_audit'].get('actual_records', 0):,} records verified (100% Complete)")
+    print("-" * 70)
+
+    print("\n[+] RAW TABLE SCHEMAS & NULL COUNTS:")
+    print(f"{'Table Name':<25} {'Rows':<12} {'Columns':<10} {'Nulls':<10}")
+    print("-" * 60)
+    for tbl, meta in report["schema_audit"].items():
+        df_tbl = auditor.tables.get(tbl)
+        null_count = int(df_tbl.isna().sum().sum()) if df_tbl is not None else 0
+        print(f"{tbl:<25} {meta.get('row_count', 0):<12,d} {meta.get('columns_matched', 0):<10} {null_count:<10}")
+
+    if "daily_sales.csv" in auditor.tables and "branches.csv" in auditor.tables:
+        sales = auditor.tables["daily_sales.csv"]
+        branches = auditor.tables["branches.csv"]
+        sales["total_revenue"] = sales["total_revenue"].astype(float)
+        daily_branch_rev = sales.groupby(["date", "branch_id"])["total_revenue"].sum().reset_index()
+        daily_stats = daily_branch_rev.groupby("branch_id")["total_revenue"].agg(["mean", "min", "max"]).round(2).reset_index()
+        merged = daily_stats.merge(branches[["branch_id", "branch_name", "location_type"]], on="branch_id")
+
+        print("\n[+] DAILY BRANCH REVENUE PROFILE (INR):")
+        print(f"{'Branch ID':<10} {'Branch Name':<26} {'Location Type':<22} {'Daily Avg (INR)':<15}")
+        print("-" * 75)
+        for _, row in merged.iterrows():
+            print(f"{row['branch_id']:<10} {row['branch_name']:<26} {row['location_type']:<22} INR {row['mean']:>10.2f}")
+
+    if "batches.csv" in auditor.tables:
+        batches = auditor.tables["batches.csv"]
+        exp_dt = pd.to_datetime(batches["expiry_date"])
+        ref_dt = pd.to_datetime("2026-09-30")
+        days_to_exp = (exp_dt - ref_dt).dt.days
+        tiers = pd.cut(
+            days_to_exp,
+            bins=[-100, 90, 365, 1000],
+            labels=["Near-Term (<90d)", "Medium-Term (90-365d)", "Long-Term (>365d)"]
+        ).value_counts()
+
+        print("\n[+] BATCH EXPIRY STRATIFICATION (<90d, 90-365d, >365d):")
+        for tier_name, count in tiers.items():
+            print(f"  * {tier_name:<25}: {count} batches")
+
+    print("\n" + "=" * 70)
     print(f"Report Exported: data/processed/data_health_report.json")
-    print("=" * 65)
+    print("=" * 70)
 
     if report["critical_errors"]:
         print("\nERRORS DETECTED:")

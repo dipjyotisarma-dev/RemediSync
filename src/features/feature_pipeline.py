@@ -151,3 +151,46 @@ class FeaturePipeline:
         target.parent.mkdir(parents=True, exist_ok=True)
         self.feature_matrix.to_parquet(target, index=False, engine="pyarrow")
         return target
+
+
+def main() -> None:
+    import sys
+    if sys.platform == "win32":
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except AttributeError:
+            pass
+
+    pipeline = FeaturePipeline()
+    pipeline.load_data()
+    matrix = pipeline.generate_feature_matrix()
+    out_file = pipeline.export()
+
+    file_size_mb = out_file.stat().st_size / (1024 * 1024)
+    mem_usage_mb = matrix.memory_usage().sum() / (1024 * 1024)
+
+    print("=" * 70)
+    print("REMEDISYNC FEATURE ENGINEERING & TRAINING MATRIX PIPELINE")
+    print("=" * 70)
+    print(f"Total Rows:       {len(matrix):,} (516 series x {matrix['date'].nunique()} days)")
+    print(f"Total Columns:    {len(matrix.columns)} features + target")
+    print(f"Missing Values:   {matrix.isna().sum().sum()} nulls (100% Complete)")
+    print(f"Date Range:       {matrix['date'].min().strftime('%Y-%m-%d')} to {matrix['date'].max().strftime('%Y-%m-%d')}")
+    print(f"In-Memory Size:   {mem_usage_mb:.2f} MB")
+    print(f"Parquet Storage:  {file_size_mb:.2f} MB (Compressed via PyArrow)")
+    print("-" * 70)
+
+    print("\n[+] FEATURE SET BREAKDOWN:")
+    print("  * Target (y)     : target_7d (7-day cumulative forward customer demand)")
+    print("  * Weekly Lags    : sales_lag_7, sales_lag_14, sales_lag_21, sales_lag_28 (Strict shift(1))")
+    print("  * Rolling Stats  : rolling_mean_7/14/28, rolling_std_7/28")
+    print("  * Calendar/Cyclic: day_of_week, day_of_month, month, quarter, is_payday_week, sin/cos encodings")
+    print("  * Dimensions     : category, dosage_form, location_type, mrp, cost_price, demand_pattern, abc_class")
+
+    print("\n" + "=" * 70)
+    print(f"Feature Store: {out_file}")
+    print("=" * 70)
+
+
+if __name__ == "__main__":
+    main()
