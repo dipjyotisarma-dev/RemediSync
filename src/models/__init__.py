@@ -1,8 +1,13 @@
-"""Demand forecasting and model evaluation package for RemediSync."""
+"""Demand forecasting, evaluation, and diagnostic package for RemediSync."""
 
 from typing import Any
 
-__all__ = ["BaselineForecaster", "ForecastEvaluator", "DemandForecaster"]
+__all__ = [
+    "BaselineForecaster",
+    "ForecastEvaluator",
+    "DemandForecaster",
+    "ModelDiagnostics",
+]
 
 
 def __getattr__(name: str) -> Any:
@@ -16,4 +21,7 @@ def __getattr__(name: str) -> Any:
     if name == "DemandForecaster":
         from src.models.forecaster import DemandForecaster
         return DemandForecaster
+    if name == "ModelDiagnostics":
+        from src.models.diagnostics import ModelDiagnostics
+        return ModelDiagnostics
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
