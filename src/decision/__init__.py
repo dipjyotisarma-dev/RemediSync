@@ -2,7 +2,13 @@
 
 from typing import Any
 
-__all__ = ["InventoryPolicy", "ExpiryIntelligenceEngine", "OrderGenerator"]
+__all__ = [
+    "InventoryPolicy",
+    "ExpiryIntelligenceEngine",
+    "OrderGenerator",
+    "PolicySimulator",
+    "SimulationKPIs",
+]
 
 
 def __getattr__(name: str) -> Any:
@@ -16,4 +22,7 @@ def __getattr__(name: str) -> Any:
     if name == "OrderGenerator":
         from src.decision.order_generator import OrderGenerator
         return OrderGenerator
+    if name in ("PolicySimulator", "SimulationKPIs"):
+        from src.decision.policy_simulator import PolicySimulator, SimulationKPIs
+        return PolicySimulator if name == "PolicySimulator" else SimulationKPIs
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
