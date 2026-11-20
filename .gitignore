@@ -15,6 +15,10 @@ __pycache__/
 # Data files (raw & processed stay local, not on git)
 data/raw/*
 data/processed/*
+data/*.db
+*.db
+*.sqlite
+*.sqlite3
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
