@@ -1,0 +1,123 @@
+/* RemediSync Design System · Operate Mode · Three-Layer Token Architecture */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Layer 1: Primitive Tokens */
+  --raw-white: #ffffff;
+  --raw-slate-50: #f8fafc;
+  --raw-slate-100: #f1f5f9;
+  --raw-slate-200: #e2e8f0;
+  --raw-slate-300: #cbd5e1;
+  --raw-slate-500: #64748b;
+  --raw-slate-600: #475569;
+  --raw-slate-700: #334155;
+  --raw-slate-900: #0f172a;
+
+  --raw-teal-50: #f0fdfa;
+  --raw-teal-200: #99f6e4;
+  --raw-teal-700: #0f766e;
+  --raw-teal-800: #115e59;
+
+  --raw-emerald-50: #ecfdf5;
+  --raw-emerald-200: #a7f3d0;
+  --raw-emerald-700: #047857;
+
+  --raw-amber-50: #fffbeb;
+  --raw-amber-200: #fde68a;
+  --raw-amber-700: #b45309;
+
+  --raw-rose-50: #fff1f2;
+  --raw-rose-200: #fecdd3;
+  --raw-rose-700: #be123c;
+
+  /* Layer 2: Semantic Surface, Border & Ink Tokens */
+  --bg-canvas: var(--raw-slate-50);
+  --bg-surface: var(--raw-white);
+  --bg-subtle: var(--raw-slate-100);
+
+  --border-hairline: var(--raw-slate-200);
+  --border-strong: var(--raw-slate-300);
+
+  --ink-primary: var(--raw-slate-900);
+  --ink-secondary: var(--raw-slate-600);
+  --ink-muted: var(--raw-slate-500);
+  --ink-inverse: var(--raw-white);
+
+  --accent-primary: var(--raw-teal-700);
+  --accent-primary-hover: var(--raw-teal-800);
+  --accent-subtle: var(--raw-teal-50);
+  --accent-border: var(--raw-teal-200);
+
+  --status-critical-ink: var(--raw-rose-700);
+  --status-critical-bg: var(--raw-rose-50);
+  --status-critical-border: var(--raw-rose-200);
+
+  --status-warning-ink: var(--raw-amber-700);
+  --status-warning-bg: var(--raw-amber-50);
+  --status-warning-border: var(--raw-amber-200);
+
+  --status-healthy-ink: var(--raw-emerald-700);
+  --status-healthy-bg: var(--raw-emerald-50);
+  --status-healthy-border: var(--raw-emerald-200);
+
+  --backdrop-scrim: rgba(15, 23, 42, 0.28);
+  --shadow-overlay: 0 10px 28px -6px rgba(15, 23, 42, 0.12),
+    0 2px 8px -2px rgba(15, 23, 42, 0.06);
+
+  /* Layer 3: Component Geometry Tokens */
+  --sidebar-width: 240px;
+  --topbar-height: 56px;
+  --content-max-width: 1440px;
+  --table-row-height: 42px;
+  --radius-panel: 12px;
+  --radius-control: 8px;
+  --radius-badge: 6px;
+}
+
+@layer base {
+  html,
+  body {
+    overflow-x: clip;
+    background-color: var(--bg-canvas);
+    color: var(--ink-primary);
+    font-family: var(--font-sans), system-ui, sans-serif;
+    caret-color: var(--accent-primary);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--raw-teal-200);
+    color: var(--raw-slate-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    overflow-wrap: break-word;
+    min-width: 0;
+  }
+}
+
+.font-mono-tabular {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
